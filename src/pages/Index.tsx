@@ -1,187 +1,206 @@
 
 import React from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ExternalLink, Link2, LineChart, Shield, Smartphone } from "lucide-react";
+import Navbar from "@/components/Navbar";
 
-const Index = () => {
+const Index: React.FC = () => {
+  const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      {/* Hero Section */}
-      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2">
-            <span className="inline-block font-mono text-xl font-bold">
-              Link<span className="text-accent">Craft</span>
-            </span>
-          </Link>
-          
-          <nav className="hidden md:flex md:items-center md:space-x-4">
-            <Link to="/features" className="text-sm text-foreground/70 hover:text-foreground transition-colors">
-              Features
-            </Link>
-            <Link to="/pricing" className="text-sm text-foreground/70 hover:text-foreground transition-colors">
-              Pricing
-            </Link>
-            <Link to="/about" className="text-sm text-foreground/70 hover:text-foreground transition-colors">
-              About
-            </Link>
-          </nav>
-          
-          <div className="flex items-center gap-4">
-            {isAuthenticated ? (
-              <Button asChild>
-                <Link to="/dashboard">
-                  Dashboard
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            ) : (
-              <>
-                <Button asChild variant="ghost" size="sm">
-                  <Link to="/login">Log in</Link>
-                </Button>
-                <Button asChild size="sm">
-                  <Link to="/login">Get Started</Link>
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <main className="flex-1">
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      
+      <main>
         {/* Hero Section */}
-        <section className="pt-20 pb-20 md:pt-32 md:pb-32">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center space-y-4 text-center">
-              <div className="animate-fade-in space-y-2">
-                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl">
-                  Your Digital Presence. <span className="text-accent">Simplified.</span>
-                </h1>
-                <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl">
-                  Craft beautiful bio links, shorten URLs, and track analytics with our intuitive platform.
-                </p>
-              </div>
-              <div className="animate-slide-up space-x-4">
-                <Button asChild size="lg">
-                  <Link to="/login">
-                    Get Started
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" size="lg">
-                  <Link to="/features">Learn More</Link>
-                </Button>
-              </div>
+        <section className="py-20 px-4">
+          <div className="container mx-auto text-center">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6">
+              Manage and Share Your Links{" "}
+              <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Effortlessly
+              </span>
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
+              Create your personalized link bio page, shorten URLs, and track engagement with LinkCraft - your all-in-one link management platform.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                size="lg" 
+                onClick={() => navigate(isAuthenticated ? "/dashboard" : "/login")}
+              >
+                {isAuthenticated ? "Go to Dashboard" : "Get Started for Free"}
+              </Button>
+              <Button 
+                variant="outline" 
+                size="lg"
+                onClick={() => navigate("/link-bio")}
+              >
+                Create Link Bio
+              </Button>
             </div>
           </div>
         </section>
-
+        
         {/* Features Section */}
-        <section className="w-full py-16 bg-muted/30">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">
-                  Key Features
+        <section className="py-16 bg-muted/50">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl font-bold text-center mb-12">Powerful Features</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="bg-card rounded-lg p-6 shadow-sm">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="24" 
+                    height="24" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className="text-primary"
+                  >
+                    <path d="M9 17H7A5 5 0 0 1 7 7h2"></path>
+                    <path d="M15 7h2a5 5 0 1 1 0 10h-2"></path>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                  </svg>
                 </div>
-                <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">
-                  Everything You Need
-                </h2>
-                <p className="max-w-[600px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Our platform offers all the tools you need to create and manage your digital presence.
-                </p>
-              </div>
-            </div>
-            <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-3">
-              {/* Feature Card 1 */}
-              <div className="animate-fade-in dashboard-card flex flex-col items-center space-y-2 p-6 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/10 mb-2">
-                  <Link2 className="h-6 w-6 text-accent" />
-                </div>
-                <h3 className="text-lg font-bold">Link Shortening</h3>
-                <p className="text-sm text-gray-500">
-                  Create short, memorable links for your content that are easy to share and track.
-                </p>
-              </div>
-              
-              {/* Feature Card 2 */}
-              <div className="animate-fade-in dashboard-card flex flex-col items-center space-y-2 p-6 text-center [animation-delay:200ms]">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/10 mb-2">
-                  <Smartphone className="h-6 w-6 text-accent" />
-                </div>
-                <h3 className="text-lg font-bold">Bio Link Pages</h3>
-                <p className="text-sm text-gray-500">
-                  Create beautiful, customizable bio pages to showcase all your important links in one place.
+                <h3 className="text-xl font-bold mb-2">Link Shortening</h3>
+                <p className="text-muted-foreground">
+                  Create short, memorable links that redirect to your long URLs. Perfect for social media and marketing.
                 </p>
               </div>
               
-              {/* Feature Card 3 */}
-              <div className="animate-fade-in dashboard-card flex flex-col items-center space-y-2 p-6 text-center [animation-delay:400ms]">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/10 mb-2">
-                  <LineChart className="h-6 w-6 text-accent" />
+              <div className="bg-card rounded-lg p-6 shadow-sm">
+                <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center mb-4">
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="24" 
+                    height="24" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className="text-accent"
+                  >
+                    <path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"></path>
+                    <line x1="8" y1="16" x2="8.01" y2="16"></line>
+                    <line x1="8" y1="20" x2="8.01" y2="20"></line>
+                    <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                    <line x1="12" y1="22" x2="12.01" y2="22"></line>
+                    <line x1="16" y1="16" x2="16.01" y2="16"></line>
+                    <line x1="16" y1="20" x2="16.01" y2="20"></line>
+                  </svg>
                 </div>
-                <h3 className="text-lg font-bold">Advanced Analytics</h3>
-                <p className="text-sm text-gray-500">
-                  Track clicks, geographic data, and user behavior to optimize your content strategy.
+                <h3 className="text-xl font-bold mb-2">Customizable Bio Page</h3>
+                <p className="text-muted-foreground">
+                  Create a personalized bio page with all your important links in one place. Customize colors, styles, and more.
+                </p>
+              </div>
+              
+              <div className="bg-card rounded-lg p-6 shadow-sm">
+                <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center mb-4">
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="24" 
+                    height="24" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className="text-green-500"
+                  >
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold mb-2">Advanced Analytics</h3>
+                <p className="text-muted-foreground">
+                  Track clicks, geographic data, referrers, and more for all your links. Make data-driven decisions.
                 </p>
               </div>
             </div>
           </div>
         </section>
-
+        
         {/* CTA Section */}
-        <section className="w-full py-16">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">
-                  Ready to Get Started?
-                </h2>
-                <p className="max-w-[600px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Join thousands of creators, brands, and businesses optimizing their online presence.
-                </p>
-              </div>
-              <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                <Button asChild size="lg">
-                  <Link to="/login">
-                    Create Your Account
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
+        <section className="py-20 px-4 bg-gradient-to-r from-primary/10 to-accent/10">
+          <div className="container mx-auto text-center">
+            <h2 className="text-3xl font-bold mb-6">Ready to take control of your links?</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
+              Join thousands of creators, marketers, and businesses who use LinkCraft to manage their online presence.
+            </p>
+            <Button 
+              size="lg" 
+              onClick={() => navigate(isAuthenticated ? "/dashboard" : "/login")}
+            >
+              {isAuthenticated ? "Go to Dashboard" : "Sign Up Now"}
+            </Button>
           </div>
         </section>
       </main>
-
+      
       {/* Footer */}
-      <footer className="w-full border-t border-border/40 bg-background">
-        <div className="container flex flex-col items-center justify-between gap-4 py-10 md:h-24 md:flex-row md:py-0">
-          <div className="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
-            <Link to="/" className="flex items-center space-x-2">
-              <span className="inline-block font-mono text-xl font-bold">
-                Link<span className="text-accent">Craft</span>
-              </span>
-            </Link>
-            <p className="text-center text-sm text-gray-500 md:text-left">
+      <footer className="bg-background border-t py-12">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="mb-6 md:mb-0">
+              <h3 className="text-xl font-bold">LinkCraft</h3>
+              <p className="text-muted-foreground">Your link management platform</p>
+            </div>
+            
+            <div className="flex gap-8">
+              <div>
+                <h4 className="font-medium mb-2">Product</h4>
+                <ul className="space-y-1 text-sm text-muted-foreground">
+                  <li><a href="#" className="hover:text-foreground">Features</a></li>
+                  <li><a href="#" className="hover:text-foreground">Pricing</a></li>
+                  <li><a href="#" className="hover:text-foreground">Roadmap</a></li>
+                </ul>
+              </div>
+              
+              <div>
+                <h4 className="font-medium mb-2">Resources</h4>
+                <ul className="space-y-1 text-sm text-muted-foreground">
+                  <li><a href="#" className="hover:text-foreground">Blog</a></li>
+                  <li><a href="#" className="hover:text-foreground">Documentation</a></li>
+                  <li><a href="#" className="hover:text-foreground">Help Center</a></li>
+                </ul>
+              </div>
+              
+              <div>
+                <h4 className="font-medium mb-2">Company</h4>
+                <ul className="space-y-1 text-sm text-muted-foreground">
+                  <li><a href="#" className="hover:text-foreground">About Us</a></li>
+                  <li><a href="#" className="hover:text-foreground">Careers</a></li>
+                  <li><a href="#" className="hover:text-foreground">Contact</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <div className="border-t mt-10 pt-6 flex flex-col md:flex-row justify-between items-center">
+            <p className="text-sm text-muted-foreground">
               &copy; {new Date().getFullYear()} LinkCraft. All rights reserved.
             </p>
-          </div>
-          <div className="flex gap-4">
-            <Link to="/terms" className="text-xs text-gray-500 hover:underline">
-              Terms
-            </Link>
-            <Link to="/privacy" className="text-xs text-gray-500 hover:underline">
-              Privacy
-            </Link>
-            <Link to="/contact" className="text-xs text-gray-500 hover:underline">
-              Contact
-            </Link>
+            
+            <div className="flex gap-4 mt-4 md:mt-0">
+              <a href="#" className="text-muted-foreground hover:text-foreground">
+                Privacy Policy
+              </a>
+              <a href="#" className="text-muted-foreground hover:text-foreground">
+                Terms of Service
+              </a>
+            </div>
           </div>
         </div>
       </footer>

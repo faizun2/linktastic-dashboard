@@ -6,34 +6,28 @@ import Navbar from "@/components/Navbar";
 import MobilePreview, { BioLink } from "@/components/MobilePreview";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Check, Copy, Edit, Trash, MoveVertical, ExternalLink, Plus, Download, Palette } from "lucide-react";
+import { Plus, Trash, GripVertical, ImageIcon, Edit, Pen, Settings } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-// Component for a sortable link item
-const SortableBioLink: React.FC<{
+interface SortableLinkItemProps {
   link: BioLink;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
-}> = ({ link, onEdit, onDelete }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-  } = useSortable({ id: link.id });
+}
+
+const SortableLinkItem: React.FC<SortableLinkItemProps> = ({ link, onEdit, onDelete }) => {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: link.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -41,65 +35,50 @@ const SortableBioLink: React.FC<{
   };
 
   return (
-    <Card ref={setNodeRef} style={style} className="mb-2">
-      <CardContent className="p-3 flex items-center">
-        <div 
-          {...attributes} 
-          {...listeners}
-          className="mr-3 cursor-grab active:cursor-grabbing touch-none opacity-50 hover:opacity-100 transition-opacity"
-        >
-          <MoveVertical size={18} />
+    <div ref={setNodeRef} style={style} className="bg-white dark:bg-gray-800 rounded-md border mb-3 p-3">
+      <div className="flex items-center">
+        <div {...attributes} {...listeners} className="cursor-grab mr-2">
+          <GripVertical size={20} className="text-gray-500" />
         </div>
-        
-        <div className="flex-1 min-w-0">
-          <h3 className="font-medium text-sm truncate">{link.title}</h3>
-          <a 
-            href={link.url} 
-            target="_blank" 
-            rel="noreferrer" 
-            className="text-xs text-muted-foreground hover:text-foreground truncate flex items-center"
-          >
-            <span className="truncate">{link.url}</span>
-            <ExternalLink className="ml-1 h-3 w-3 inline flex-shrink-0" />
-          </a>
+        <div className="flex-1">
+          <h3 className="font-medium">{link.title}</h3>
+          <p className="text-sm text-gray-500 truncate">{link.url}</p>
         </div>
-        
-        <div className="flex items-center gap-1 ml-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onEdit(link.id)}
-            className="h-8 w-8"
-          >
-            <Edit size={14} />
+        <div className="flex space-x-2">
+          <Button variant="ghost" size="icon" onClick={() => onEdit(link.id)}>
+            <Edit size={16} />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onDelete(link.id)}
-            className="h-8 w-8 text-destructive hover:text-destructive"
-          >
-            <Trash size={14} />
+          <Button variant="ghost" size="icon" className="text-red-500" onClick={() => onDelete(link.id)}>
+            <Trash size={16} />
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 
-// Main LinkBio component
 const LinkBio: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
-  const [links, setLinks] = useState<BioLink[]>([]);
-  const [profileName, setProfileName] = useState("");
-  const [profileBio, setProfileBio] = useState("");
-  const [profileImage, setProfileImage] = useState("");
-  const [accentColor, setAccentColor] = useState("#3b82f6");
-  const [backgroundColor, setBackgroundColor] = useState("#f9fafb");
-  const [containerStyle, setContainerStyle] = useState<"default" | "rounded" | "pill" | "outline">("default");
-  const [bioUrl, setBioUrl] = useState("");
+
+  const [profileName, setProfileName] = useState("John Doe");
+  const [profileImage, setProfileImage] = useState("/placeholder.svg");
+  const [profileBio, setProfileBio] = useState("Digital creator & web developer");
+  const [links, setLinks] = useState<BioLink[]>([
+    { id: "1", title: "My Portfolio", url: "https://example.com/portfolio" },
+    { id: "2", title: "GitHub", url: "https://github.com" },
+    { id: "3", title: "Twitter", url: "https://twitter.com" },
+  ]);
   
+  const [backgroundColor, setBackgroundColor] = useState("#f0f4f8");
+  const [accentColor, setAccentColor] = useState("#4f46e5");
+  const [containerStyle, setContainerStyle] = useState<"default" | "rounded" | "pill" | "outline">("default");
+  
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingLink, setEditingLink] = useState<BioLink | null>(null);
+  const [newLinkTitle, setNewLinkTitle] = useState("");
+  const [newLinkUrl, setNewLinkUrl] = useState("");
+
   // DnD sensors
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -115,137 +94,101 @@ const LinkBio: React.FC = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // Initialize profile data
+  // Load saved data from localStorage
   useEffect(() => {
     if (user) {
-      // Load profile data
-      const storedProfile = localStorage.getItem(`user_${user.id}_bio_profile`);
-      if (storedProfile) {
+      const savedData = localStorage.getItem(`user_${user.id}_bio`);
+      if (savedData) {
         try {
-          const { name, bio, image, accent, background, container } = JSON.parse(storedProfile);
-          setProfileName(name || user.username);
-          setProfileBio(bio || "");
-          setProfileImage(image || user.avatar);
-          setAccentColor(accent || "#3b82f6");
-          setBackgroundColor(background || "#f9fafb");
-          setContainerStyle(container || "default");
+          const data = JSON.parse(savedData);
+          setProfileName(data.profileName || "John Doe");
+          setProfileImage(data.profileImage || "/placeholder.svg");
+          setProfileBio(data.profileBio || "Digital creator & web developer");
+          setLinks(data.links || []);
+          setBackgroundColor(data.backgroundColor || "#f0f4f8");
+          setAccentColor(data.accentColor || "#4f46e5");
+          setContainerStyle(data.containerStyle || "default");
         } catch (e) {
-          console.error("Error parsing stored profile:", e);
-          setProfileDefaults();
+          console.error("Error parsing saved data:", e);
         }
-      } else {
-        setProfileDefaults();
       }
-
-      // Load links
-      const storedLinks = localStorage.getItem(`user_${user.id}_bio_links`);
-      if (storedLinks) {
-        try {
-          setLinks(JSON.parse(storedLinks));
-        } catch (e) {
-          console.error("Error parsing stored bio links:", e);
-          setDemoLinks();
-        }
-      } else {
-        setDemoLinks();
-      }
-
-      // Set bio URL
-      setBioUrl(`${window.location.origin}/bio/${user.username.toLowerCase()}`);
     }
   }, [user]);
 
-  // Set default profile values
-  const setProfileDefaults = () => {
+  // Save data to localStorage
+  const saveData = () => {
     if (user) {
-      setProfileName(user.username);
-      setProfileBio("Digital creator & web enthusiast");
-      setProfileImage(user.avatar);
-      setAccentColor("#3b82f6");
-      setBackgroundColor("#f9fafb");
-      setContainerStyle("default");
-    }
-  };
-
-  // Set demo links
-  const setDemoLinks = () => {
-    const demoLinks: BioLink[] = [
-      {
-        id: "biolink-1",
-        title: "My Website",
-        url: "https://example.com",
-      },
-      {
-        id: "biolink-2",
-        title: "Follow me on Twitter",
-        url: "https://twitter.com",
-      },
-      {
-        id: "biolink-3",
-        title: "Check out my YouTube",
-        url: "https://youtube.com",
-      }
-    ];
-    setLinks(demoLinks);
-    
-    if (user) {
-      localStorage.setItem(`user_${user.id}_bio_links`, JSON.stringify(demoLinks));
-    }
-  };
-
-  // Save profile data whenever it changes
-  useEffect(() => {
-    if (user) {
-      const profileData = {
-        name: profileName,
-        bio: profileBio,
-        image: profileImage,
-        accent: accentColor,
-        background: backgroundColor,
-        container: containerStyle
+      const dataToSave = {
+        profileName,
+        profileImage,
+        profileBio,
+        links,
+        backgroundColor,
+        accentColor,
+        containerStyle,
       };
-      
-      localStorage.setItem(`user_${user.id}_bio_profile`, JSON.stringify(profileData));
+      localStorage.setItem(`user_${user.id}_bio`, JSON.stringify(dataToSave));
+      toast.success("Changes saved successfully");
     }
-  }, [user, profileName, profileBio, profileImage, accentColor, backgroundColor, containerStyle]);
+  };
 
-  // Save links whenever they change
-  useEffect(() => {
-    if (user && links.length > 0) {
-      localStorage.setItem(`user_${user.id}_bio_links`, JSON.stringify(links));
-    }
-  }, [user, links]);
-
-  // Handle link operations
   const handleAddLink = () => {
-    const newLink: BioLink = {
-      id: `biolink-${Date.now()}`,
-      title: "New Link",
-      url: "https://example.com"
-    };
-    
-    setLinks([...links, newLink]);
-    toast.success("Link added");
+    setEditingLink(null);
+    setNewLinkTitle("");
+    setNewLinkUrl("");
+    setEditModalOpen(true);
   };
 
   const handleEditLink = (id: string) => {
-    // Mock implementation - in a real app, this would open a modal
-    const linkTitle = prompt("Enter link title:", links.find(l => l.id === id)?.title);
-    const linkUrl = prompt("Enter link URL:", links.find(l => l.id === id)?.url);
-    
-    if (linkTitle && linkUrl) {
-      const updatedLinks = links.map(link => 
-        link.id === id ? { ...link, title: linkTitle, url: linkUrl } : link
-      );
-      setLinks(updatedLinks);
-      toast.success("Link updated");
+    const link = links.find((link) => link.id === id);
+    if (link) {
+      setEditingLink(link);
+      setNewLinkTitle(link.title);
+      setNewLinkUrl(link.url);
+      setEditModalOpen(true);
     }
   };
 
   const handleDeleteLink = (id: string) => {
-    const updatedLinks = links.filter(link => link.id !== id);
-    setLinks(updatedLinks);
-    toast.success("Link removed");
+    setLinks(links.filter((link) => link.id !== id));
+    toast.success("Link deleted");
+  };
+
+  const handleSaveLink = () => {
+    if (!newLinkTitle.trim() || !newLinkUrl.trim()) {
+      toast.error("Please enter both title and URL");
+      return;
+    }
+
+    try {
+      // Validate URL
+      new URL(newLinkUrl);
+      
+      if (editingLink) {
+        // Update existing link
+        setLinks(
+          links.map((link) =>
+            link.id === editingLink.id
+              ? { ...link, title: newLinkTitle, url: newLinkUrl }
+              : link
+          )
+        );
+        toast.success("Link updated");
+      } else {
+        // Add new link
+        const newLink: BioLink = {
+          id: Date.now().toString(),
+          title: newLinkTitle,
+          url: newLinkUrl,
+        };
+        setLinks([...links, newLink]);
+        toast.success("Link added");
+      }
+      
+      setEditModalOpen(false);
+    } catch (e) {
+      toast.error("Please enter a valid URL");
+    }
   };
 
   const handleDragEnd = (event: any) => {
@@ -262,62 +205,100 @@ const LinkBio: React.FC = () => {
       newLinks.splice(newIndex, 0, removed);
       
       setLinks(newLinks);
-      toast.success("Link order updated");
+      toast.success("Links reordered");
     }
   };
 
-  const handleCopyBioUrl = () => {
-    navigator.clipboard.writeText(bioUrl);
-    toast.success("Bio URL copied to clipboard!");
-  };
-
-  const handleSaveProfile = () => {
-    toast.success("Profile saved successfully!");
-  };
-
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background">
       <Navbar />
       
-      <main className="flex-1 container py-8">
+      <main className="container py-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Link Bio</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Link Bio Editor</h1>
             <p className="text-muted-foreground mt-1">
-              Customize your bio page and manage your links
+              Customize your link bio page
             </p>
           </div>
           
-          <div className="mt-4 md:mt-0 flex gap-2">
-            <Button variant="outline" onClick={handleCopyBioUrl}>
-              <Copy className="mr-2 h-4 w-4" />
-              Copy URL
-            </Button>
-            <Button onClick={handleSaveProfile}>
-              <Check className="mr-2 h-4 w-4" />
-              Save Profile
-            </Button>
+          <div className="mt-4 md:mt-0">
+            <Button onClick={saveData}>Save Changes</Button>
           </div>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left column: Editor */}
+          {/* Editor Section */}
           <div>
-            <Tabs defaultValue="profile" className="space-y-6">
+            <Tabs defaultValue="links" className="space-y-6">
               <TabsList>
-                <TabsTrigger value="profile">Profile</TabsTrigger>
                 <TabsTrigger value="links">Links</TabsTrigger>
+                <TabsTrigger value="profile">Profile</TabsTrigger>
                 <TabsTrigger value="appearance">Appearance</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="profile" className="space-y-6">
+              <TabsContent value="links" className="space-y-4">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle>My Links</CardTitle>
+                      <Button onClick={handleAddLink} size="sm">
+                        <Plus className="mr-1 h-4 w-4" />
+                        Add Link
+                      </Button>
+                    </div>
+                    <CardDescription>
+                      Add, edit, or rearrange your bio links
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {links.length > 0 ? (
+                      <DndContext 
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDragEnd}
+                        modifiers={[restrictToVerticalAxis]}
+                      >
+                        <SortableContext 
+                          items={links.map(link => link.id)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          {links.map((link) => (
+                            <SortableLinkItem
+                              key={link.id}
+                              link={link}
+                              onEdit={handleEditLink}
+                              onDelete={handleDeleteLink}
+                            />
+                          ))}
+                        </SortableContext>
+                      </DndContext>
+                    ) : (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground mb-4">
+                          You don't have any links yet
+                        </p>
+                        <Button onClick={handleAddLink}>
+                          <Plus className="mr-2 h-4 w-4" />
+                          Add Your First Link
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="profile" className="space-y-4">
                 <Card>
                   <CardHeader>
                     <CardTitle>Profile Information</CardTitle>
+                    <CardDescription>
+                      Update your name, bio, and profile image
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="profileName">Display Name</Label>
+                      <Label htmlFor="profileName">Name</Label>
                       <Input
                         id="profileName"
                         value={profileName}
@@ -332,12 +313,9 @@ const LinkBio: React.FC = () => {
                         id="profileBio"
                         value={profileBio}
                         onChange={(e) => setProfileBio(e.target.value)}
-                        placeholder="Tell visitors about yourself"
+                        placeholder="Write a short bio"
                         rows={3}
                       />
-                      <p className="text-xs text-muted-foreground">
-                        Keep it short and sweet. 150 characters or less.
-                      </p>
                     </div>
                     
                     <div className="space-y-2">
@@ -346,195 +324,89 @@ const LinkBio: React.FC = () => {
                         id="profileImage"
                         value={profileImage}
                         onChange={(e) => setProfileImage(e.target.value)}
-                        placeholder="https://example.com/your-image.jpg"
+                        placeholder="https://example.com/image.jpg"
                       />
-                      <p className="text-xs text-muted-foreground">
-                        Enter the URL of your profile image
-                      </p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="bioUrl">Your Bio URL</Label>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          id="bioUrl"
-                          value={bioUrl}
-                          readOnly
-                          className="flex-1"
-                        />
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={handleCopyBioUrl}
-                          className="h-10 w-10"
-                        >
-                          <Copy size={16} />
-                        </Button>
+                      <div className="mt-2 flex items-center">
+                        <div className="h-16 w-16 rounded-full overflow-hidden border">
+                          <img 
+                            src={profileImage} 
+                            alt="Profile Preview" 
+                            className="h-full w-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "/placeholder.svg";
+                            }}
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground ml-3">
+                          Enter the URL of your profile image. For best results, use a square image.
+                        </p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               </TabsContent>
               
-              <TabsContent value="links" className="space-y-6">
-                <Card>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle>Bio Links</CardTitle>
-                      <Button size="sm" onClick={handleAddLink}>
-                        <Plus className="mr-1 h-4 w-4" />
-                        Add Link
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-sm text-muted-foreground mb-4">
-                      Drag and drop to reorder your links
-                    </div>
-                    
-                    {links.length > 0 ? (
-                      <DndContext 
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={handleDragEnd}
-                        modifiers={[restrictToVerticalAxis]}
-                      >
-                        <SortableContext 
-                          items={links.map(link => link.id)}
-                          strategy={verticalListSortingStrategy}
-                        >
-                          {links.map((link) => (
-                            <SortableBioLink
-                              key={link.id}
-                              link={link}
-                              onEdit={handleEditLink}
-                              onDelete={handleDeleteLink}
-                            />
-                          ))}
-                        </SortableContext>
-                      </DndContext>
-                    ) : (
-                      <div className="text-center py-8">
-                        <p className="text-muted-foreground mb-4">You don't have any links yet</p>
-                        <Button onClick={handleAddLink}>
-                          <Plus className="mr-2 h-4 w-4" />
-                          Add Your First Link
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="appearance" className="space-y-6">
+              <TabsContent value="appearance" className="space-y-4">
                 <Card>
                   <CardHeader>
                     <CardTitle>Appearance Settings</CardTitle>
+                    <CardDescription>
+                      Customize the look and feel of your link bio page
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label>Background Color</Label>
-                      <div className="flex items-center gap-2">
+                      <Label htmlFor="backgroundColor">Background Color</Label>
+                      <div className="flex items-center">
+                        <Input
+                          id="backgroundColor"
+                          value={backgroundColor}
+                          onChange={(e) => setBackgroundColor(e.target.value)}
+                          className="flex-1"
+                        />
                         <input
                           type="color"
                           value={backgroundColor}
                           onChange={(e) => setBackgroundColor(e.target.value)}
-                          className="w-10 h-10 rounded-md cursor-pointer border border-input"
-                        />
-                        <Input
-                          value={backgroundColor}
-                          onChange={(e) => setBackgroundColor(e.target.value)}
-                          className="flex-1"
+                          className="ml-2 h-10 w-10 rounded border cursor-pointer"
                         />
                       </div>
                     </div>
                     
                     <div className="space-y-2">
-                      <Label>Accent Color</Label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={accentColor}
-                          onChange={(e) => setAccentColor(e.target.value)}
-                          className="w-10 h-10 rounded-md cursor-pointer border border-input"
-                        />
+                      <Label htmlFor="accentColor">Accent Color</Label>
+                      <div className="flex items-center">
                         <Input
+                          id="accentColor"
                           value={accentColor}
                           onChange={(e) => setAccentColor(e.target.value)}
                           className="flex-1"
                         />
+                        <input
+                          type="color"
+                          value={accentColor}
+                          onChange={(e) => setAccentColor(e.target.value)}
+                          className="ml-2 h-10 w-10 rounded border cursor-pointer"
+                        />
                       </div>
                     </div>
                     
-                    <Separator className="my-4" />
-                    
                     <div className="space-y-2">
-                      <Label>Button Style</Label>
-                      <RadioGroup
-                        value={containerStyle}
-                        onValueChange={(v) => setContainerStyle(v as any)}
-                        className="grid grid-cols-2 gap-4"
+                      <Label htmlFor="containerStyle">Container Style</Label>
+                      <Select 
+                        value={containerStyle} 
+                        onValueChange={(value) => setContainerStyle(value as any)}
                       >
-                        <div>
-                          <RadioGroupItem
-                            value="default"
-                            id="container-default"
-                            className="peer sr-only"
-                          />
-                          <Label
-                            htmlFor="container-default"
-                            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
-                          >
-                            <div className="w-full h-8 rounded-md bg-accent"></div>
-                            <span className="mt-2">Default</span>
-                          </Label>
-                        </div>
-                        
-                        <div>
-                          <RadioGroupItem
-                            value="rounded"
-                            id="container-rounded"
-                            className="peer sr-only"
-                          />
-                          <Label
-                            htmlFor="container-rounded"
-                            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
-                          >
-                            <div className="w-full h-8 rounded-xl bg-accent"></div>
-                            <span className="mt-2">Rounded</span>
-                          </Label>
-                        </div>
-                        
-                        <div>
-                          <RadioGroupItem
-                            value="pill"
-                            id="container-pill"
-                            className="peer sr-only"
-                          />
-                          <Label
-                            htmlFor="container-pill"
-                            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
-                          >
-                            <div className="w-full h-8 rounded-full bg-accent"></div>
-                            <span className="mt-2">Pill</span>
-                          </Label>
-                        </div>
-                        
-                        <div>
-                          <RadioGroupItem
-                            value="outline"
-                            id="container-outline"
-                            className="peer sr-only"
-                          />
-                          <Label
-                            htmlFor="container-outline"
-                            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
-                          >
-                            <div className="w-full h-8 rounded-md border-2 border-accent bg-transparent"></div>
-                            <span className="mt-2">Outline</span>
-                          </Label>
-                        </div>
-                      </RadioGroup>
+                        <SelectTrigger id="containerStyle">
+                          <SelectValue placeholder="Select a style" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="default">Default</SelectItem>
+                          <SelectItem value="rounded">Rounded</SelectItem>
+                          <SelectItem value="pill">Pill</SelectItem>
+                          <SelectItem value="outline">Outline</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </CardContent>
                 </Card>
@@ -542,27 +414,65 @@ const LinkBio: React.FC = () => {
             </Tabs>
           </div>
           
-          {/* Right column: Preview */}
-          <div className="flex flex-col items-center">
-            <div className="text-center mb-4">
-              <h2 className="text-lg font-medium">Mobile Preview</h2>
-              <p className="text-sm text-muted-foreground">
-                See how your profile looks on mobile devices
-              </p>
+          {/* Preview Section */}
+          <div className="flex justify-center">
+            <div className="sticky top-24">
+              <h3 className="text-center font-medium mb-4">Mobile Preview</h3>
+              <MobilePreview
+                profileName={profileName}
+                profileImage={profileImage}
+                profileBio={profileBio}
+                links={links}
+                backgroundColor={backgroundColor}
+                accentColor={accentColor}
+                containerStyle={containerStyle}
+              />
             </div>
-            
-            <MobilePreview
-              profileName={profileName}
-              profileImage={profileImage}
-              profileBio={profileBio}
-              links={links}
-              backgroundColor={backgroundColor}
-              containerStyle={containerStyle}
-              accentColor={accentColor}
-            />
           </div>
         </div>
       </main>
+      
+      {/* Edit Link Modal */}
+      <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {editingLink ? "Edit Link" : "Add New Link"}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="linkTitle">Link Title</Label>
+              <Input
+                id="linkTitle"
+                value={newLinkTitle}
+                onChange={(e) => setNewLinkTitle(e.target.value)}
+                placeholder="e.g. My Portfolio"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="linkUrl">URL</Label>
+              <Input
+                id="linkUrl"
+                value={newLinkUrl}
+                onChange={(e) => setNewLinkUrl(e.target.value)}
+                placeholder="https://example.com"
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveLink}>
+              {editingLink ? "Save Changes" : "Add Link"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
