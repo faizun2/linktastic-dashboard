@@ -62,12 +62,10 @@ const MobilePreview: React.FC<PreviewProps> = ({
         style={{ backgroundColor }}
       >
         <div className="flex flex-col items-center">
-          <div className="mb-4" style={{ borderRadius: "50%", padding: "4px", backgroundColor: accentColor }}>
-            <Avatar className="h-24 w-24">
-              <AvatarImage src={profileImage} alt={profileName} />
-              <AvatarFallback className="text-2xl">{profileName.charAt(0)}</AvatarFallback>
-            </Avatar>
-          </div>
+          <Avatar className="h-24 w-24 mb-4 ring-4" style={{ ringColor: accentColor }}>
+            <AvatarImage src={profileImage} alt={profileName} />
+            <AvatarFallback className="text-2xl">{profileName.charAt(0)}</AvatarFallback>
+          </Avatar>
           
           <h2 className="text-xl font-bold mb-1">{profileName}</h2>
           
