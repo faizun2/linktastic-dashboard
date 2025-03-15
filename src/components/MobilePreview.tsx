@@ -62,8 +62,9 @@ const MobilePreview: React.FC<PreviewProps> = ({
         style={{ backgroundColor }}
       >
         <div className="flex flex-col items-center">
-          <div className="mb-4" style={{ borderColor: accentColor }}>
-            <Avatar className="h-24 w-24 ring-4" style={{ ringColor: accentColor }}>
+          {/* Using a wrapper div with borderColor instead of directly styling the Avatar */}
+          <div className="mb-4">
+            <Avatar className="h-24 w-24" style={{ border: `4px solid ${accentColor}`, borderRadius: '50%' }}>
               <AvatarImage src={profileImage} alt={profileName} />
               <AvatarFallback className="text-2xl">{profileName.charAt(0)}</AvatarFallback>
             </Avatar>
