@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -22,7 +21,7 @@ import {
   Check, 
   RefreshCw,
   LogOut,
-  Google
+  Globe
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
@@ -43,13 +42,11 @@ const Settings: React.FC = () => {
   
   const [googleConnected, setGoogleConnected] = useState(false);
 
-  // Redirect if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/login");
     } else if (user) {
       setCurrentEmail(user.email);
-      // In a real app, you would fetch security settings from the backend
       const savedSettings = localStorage.getItem(`user_${user.id}_settings`);
       if (savedSettings) {
         try {
@@ -75,7 +72,6 @@ const Settings: React.FC = () => {
       return;
     }
     
-    // Simulate API call
     setTimeout(() => {
       toast.success("Email updated successfully");
       setCurrentEmail(newEmail);
@@ -106,7 +102,6 @@ const Settings: React.FC = () => {
       return;
     }
     
-    // Simulate API call
     setTimeout(() => {
       toast.success("Password updated successfully");
       setCurrentPassword("");
@@ -117,12 +112,9 @@ const Settings: React.FC = () => {
 
   const handleToggleTwoFactor = () => {
     if (!twoFactorEnabled) {
-      // Start 2FA setup
       setTwoFactorSetupOpen(true);
-      // Generate a fake 2FA code
       setTwoFactorCode(Math.random().toString(36).substring(2, 10).toUpperCase());
     } else {
-      // Disable 2FA (in a real app, you would confirm with password)
       setTwoFactorEnabled(false);
       saveSecuritySettings(false, googleConnected);
       toast.success("Two-factor authentication disabled");
@@ -130,7 +122,6 @@ const Settings: React.FC = () => {
   };
 
   const handleVerifyTwoFactor = () => {
-    // This is just a simulation - in a real app we would validate with a proper 2FA system
     if (twoFactorVerificationCode.length === 6) {
       setTwoFactorEnabled(true);
       setTwoFactorSetupOpen(false);
@@ -143,7 +134,6 @@ const Settings: React.FC = () => {
   };
 
   const handleConnectGoogle = () => {
-    // Simulate Google OAuth flow
     setTimeout(() => {
       setGoogleConnected(true);
       saveSecuritySettings(twoFactorEnabled, true);
@@ -192,7 +182,6 @@ const Settings: React.FC = () => {
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Sidebar */}
           <div className="lg:col-span-1">
             <Card>
               <CardHeader>
@@ -219,7 +208,6 @@ const Settings: React.FC = () => {
             </Card>
           </div>
           
-          {/* Main Content */}
           <div className="lg:col-span-2">
             <Tabs defaultValue="account" className="space-y-6">
               <TabsList>
@@ -383,7 +371,7 @@ const Settings: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center">
-                          <Google className="h-5 w-5 text-blue-500" />
+                          <Globe className="h-5 w-5 text-blue-500" />
                         </div>
                         <div>
                           <p className="font-medium">Google</p>
@@ -447,7 +435,6 @@ const Settings: React.FC = () => {
         </div>
       </main>
       
-      {/* 2FA Setup Dialog */}
       <Dialog open={twoFactorSetupOpen} onOpenChange={setTwoFactorSetupOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
