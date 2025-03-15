@@ -8,25 +8,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Plus, Trash, GripVertical, ImageIcon, Edit, Pen, Settings } from "lucide-react";
+import { Plus, Trash, GripVertical, ImageIcon, Edit, Pen, Settings, Image, ImagePlus, Upload, ExternalLink, Share2, Globe, LinkIcon, EyeOff, Eye, CheckCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { Switch } from "@/components/ui/switch";
 
 interface SortableLinkItemProps {
   link: BioLink;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  onToggleActive: (id: string) => void;
 }
 
-const SortableLinkItem: React.FC<SortableLinkItemProps> = ({ link, onEdit, onDelete }) => {
+const SortableLinkItem: React.FC<SortableLinkItemProps> = ({ link, onEdit, onDelete, onToggleActive }) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: link.id });
 
   const style = {
@@ -41,10 +42,20 @@ const SortableLinkItem: React.FC<SortableLinkItemProps> = ({ link, onEdit, onDel
           <GripVertical size={20} className="text-gray-500" />
         </div>
         <div className="flex-1">
-          <h3 className="font-medium">{link.title}</h3>
+          <div className="flex items-center">
+            <h3 className={`font-medium ${!link.active ? "text-gray-400" : ""}`}>{link.title}</h3>
+            {!link.active && (
+              <Badge variant="outline" className="ml-2 text-xs">Inactive</Badge>
+            )}
+          </div>
           <p className="text-sm text-gray-500 truncate">{link.url}</p>
         </div>
-        <div className="flex space-x-2">
+        <div className="flex space-x-2 items-center">
+          <Switch 
+            checked={link.active !== false}
+            onCheckedChange={() => onToggleActive(link.id)}
+            aria-label={link.active !== false ? "Deactivate link" : "Activate link"}
+          />
           <Button variant="ghost" size="icon" onClick={() => onEdit(link.id)}>
             <Edit size={16} />
           </Button>
@@ -57,6 +68,23 @@ const SortableLinkItem: React.FC<SortableLinkItemProps> = ({ link, onEdit, onDel
   );
 };
 
+// Background presets for the link bio
+const backgroundPresets = [
+  { id: 'preset1', name: 'Sunset Gradient', value: 'linear-gradient(108deg, rgba(242,245,139,1) 17.7%, rgba(148,197,20,0.68) 91.2%)' },
+  { id: 'preset2', name: 'Cool Blue', value: 'linear-gradient(90deg, hsla(186, 33%, 94%, 1) 0%, hsla(216, 41%, 79%, 1) 100%)' },
+  { id: 'preset3', name: 'Warm Orange', value: 'linear-gradient(90deg, hsla(29, 92%, 70%, 1) 0%, hsla(0, 87%, 73%, 1) 100%)' },
+  { id: 'preset4', name: 'Soft Lavender', value: 'linear-gradient(90deg, hsla(277, 75%, 84%, 1) 0%, hsla(297, 50%, 51%, 1) 100%)' },
+  { id: 'preset5', name: 'Forest Green', value: 'linear-gradient(90deg, hsla(139, 70%, 75%, 1) 0%, hsla(63, 90%, 76%, 1) 100%)' },
+];
+
+// Container style previews
+const containerStyles = [
+  { id: 'default', name: 'Default', preview: 'rounded-md border border-gray-300' },
+  { id: 'rounded', name: 'Rounded', preview: 'rounded-xl border border-gray-300' },
+  { id: 'pill', name: 'Pill', preview: 'rounded-full border border-gray-300' },
+  { id: 'outline', name: 'Outline', preview: 'rounded-md border-2 border-gray-400 bg-opacity-10' },
+];
+
 const LinkBio: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
@@ -65,19 +93,24 @@ const LinkBio: React.FC = () => {
   const [profileImage, setProfileImage] = useState("/placeholder.svg");
   const [profileBio, setProfileBio] = useState("Digital creator & web developer");
   const [links, setLinks] = useState<BioLink[]>([
-    { id: "1", title: "My Portfolio", url: "https://example.com/portfolio" },
-    { id: "2", title: "GitHub", url: "https://github.com" },
-    { id: "3", title: "Twitter", url: "https://twitter.com" },
+    { id: "1", title: "My Portfolio", url: "https://example.com/portfolio", active: true },
+    { id: "2", title: "GitHub", url: "https://github.com", active: true },
+    { id: "3", title: "Twitter", url: "https://twitter.com", active: true },
   ]);
   
   const [backgroundColor, setBackgroundColor] = useState("#f0f4f8");
+  const [backgroundType, setBackgroundType] = useState<"color" | "gradient" | "image">("color");
+  const [backgroundImage, setBackgroundImage] = useState("");
+  const [backgroundBlur, setBackgroundBlur] = useState(false);
   const [accentColor, setAccentColor] = useState("#4f46e5");
   const [containerStyle, setContainerStyle] = useState<"default" | "rounded" | "pill" | "outline">("default");
+  const [customBaseUrl, setCustomBaseUrl] = useState("https://masfaiz.com");
   
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingLink, setEditingLink] = useState<BioLink | null>(null);
   const [newLinkTitle, setNewLinkTitle] = useState("");
   const [newLinkUrl, setNewLinkUrl] = useState("");
+  const [customDomainModalOpen, setCustomDomainModalOpen] = useState(false);
 
   // DnD sensors
   const sensors = useSensors(
@@ -106,8 +139,12 @@ const LinkBio: React.FC = () => {
           setProfileBio(data.profileBio || "Digital creator & web developer");
           setLinks(data.links || []);
           setBackgroundColor(data.backgroundColor || "#f0f4f8");
+          setBackgroundType(data.backgroundType || "color");
+          setBackgroundImage(data.backgroundImage || "");
+          setBackgroundBlur(data.backgroundBlur || false);
           setAccentColor(data.accentColor || "#4f46e5");
           setContainerStyle(data.containerStyle || "default");
+          setCustomBaseUrl(data.customBaseUrl || "https://masfaiz.com");
         } catch (e) {
           console.error("Error parsing saved data:", e);
         }
@@ -124,8 +161,12 @@ const LinkBio: React.FC = () => {
         profileBio,
         links,
         backgroundColor,
+        backgroundType,
+        backgroundImage,
+        backgroundBlur,
         accentColor,
         containerStyle,
+        customBaseUrl,
       };
       localStorage.setItem(`user_${user.id}_bio`, JSON.stringify(dataToSave));
       toast.success("Changes saved successfully");
@@ -154,6 +195,15 @@ const LinkBio: React.FC = () => {
     toast.success("Link deleted");
   };
 
+  const handleToggleLinkActive = (id: string) => {
+    setLinks(
+      links.map((link) =>
+        link.id === id ? { ...link, active: link.active === false ? true : false } : link
+      )
+    );
+    toast.success("Link status updated");
+  };
+
   const handleSaveLink = () => {
     if (!newLinkTitle.trim() || !newLinkUrl.trim()) {
       toast.error("Please enter both title and URL");
@@ -180,6 +230,7 @@ const LinkBio: React.FC = () => {
           id: Date.now().toString(),
           title: newLinkTitle,
           url: newLinkUrl,
+          active: true,
         };
         setLinks([...links, newLink]);
         toast.success("Link added");
@@ -209,6 +260,39 @@ const LinkBio: React.FC = () => {
     }
   };
 
+  const handleCustomDomain = () => {
+    setCustomDomainModalOpen(true);
+  };
+
+  const handleSaveCustomDomain = () => {
+    toast.success("Custom domain updated");
+    setCustomDomainModalOpen(false);
+  };
+
+  const handleShareLink = () => {
+    navigator.clipboard.writeText(`${customBaseUrl}/${user?.id}`);
+    toast.success("Link copied to clipboard!");
+  };
+
+  const handleSelectBackgroundPreset = (preset: string) => {
+    setBackgroundType("gradient");
+    setBackgroundColor(preset);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          setBackgroundImage(e.target.result as string);
+          setBackgroundType("image");
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -222,7 +306,15 @@ const LinkBio: React.FC = () => {
             </p>
           </div>
           
-          <div className="mt-4 md:mt-0">
+          <div className="mt-4 md:mt-0 flex space-x-2">
+            <Button variant="outline" onClick={handleCustomDomain}>
+              <Globe className="mr-2 h-4 w-4" />
+              Custom Domain
+            </Button>
+            <Button variant="outline" onClick={handleShareLink}>
+              <Share2 className="mr-2 h-4 w-4" />
+              Share
+            </Button>
             <Button onClick={saveData}>Save Changes</Button>
           </div>
         </div>
@@ -269,6 +361,7 @@ const LinkBio: React.FC = () => {
                               link={link}
                               onEdit={handleEditLink}
                               onDelete={handleDeleteLink}
+                              onToggleActive={handleToggleLinkActive}
                             />
                           ))}
                         </SortableContext>
@@ -349,64 +442,174 @@ const LinkBio: React.FC = () => {
               <TabsContent value="appearance" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Appearance Settings</CardTitle>
+                    <CardTitle>Background Settings</CardTitle>
                     <CardDescription>
-                      Customize the look and feel of your link bio page
+                      Choose a background for your link bio page
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="backgroundColor">Background Color</Label>
-                      <div className="flex items-center">
-                        <Input
-                          id="backgroundColor"
-                          value={backgroundColor}
-                          onChange={(e) => setBackgroundColor(e.target.value)}
-                          className="flex-1"
-                        />
-                        <input
-                          type="color"
-                          value={backgroundColor}
-                          onChange={(e) => setBackgroundColor(e.target.value)}
-                          className="ml-2 h-10 w-10 rounded border cursor-pointer"
-                        />
+                      <Label>Background Type</Label>
+                      <div className="flex flex-wrap gap-2">
+                        <Button 
+                          variant={backgroundType === "color" ? "default" : "outline"} 
+                          size="sm"
+                          onClick={() => setBackgroundType("color")}
+                        >
+                          Color
+                        </Button>
+                        <Button 
+                          variant={backgroundType === "gradient" ? "default" : "outline"} 
+                          size="sm"
+                          onClick={() => setBackgroundType("gradient")}
+                        >
+                          Gradient
+                        </Button>
+                        <Button 
+                          variant={backgroundType === "image" ? "default" : "outline"} 
+                          size="sm"
+                          onClick={() => setBackgroundType("image")}
+                        >
+                          Image
+                        </Button>
                       </div>
                     </div>
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="accentColor">Accent Color</Label>
-                      <div className="flex items-center">
-                        <Input
-                          id="accentColor"
-                          value={accentColor}
-                          onChange={(e) => setAccentColor(e.target.value)}
-                          className="flex-1"
-                        />
-                        <input
-                          type="color"
-                          value={accentColor}
-                          onChange={(e) => setAccentColor(e.target.value)}
-                          className="ml-2 h-10 w-10 rounded border cursor-pointer"
-                        />
+                    {backgroundType === "color" && (
+                      <div className="space-y-2">
+                        <Label htmlFor="backgroundColor">Background Color</Label>
+                        <div className="flex items-center">
+                          <Input
+                            id="backgroundColor"
+                            value={backgroundColor}
+                            onChange={(e) => setBackgroundColor(e.target.value)}
+                            className="flex-1"
+                          />
+                          <input
+                            type="color"
+                            value={backgroundColor}
+                            onChange={(e) => setBackgroundColor(e.target.value)}
+                            className="ml-2 h-10 w-10 rounded border cursor-pointer"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    
+                    {backgroundType === "gradient" && (
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label>Gradient Presets</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            {backgroundPresets.map(preset => (
+                              <button
+                                key={preset.id}
+                                className="h-12 rounded-md border overflow-hidden cursor-pointer"
+                                style={{ background: preset.value }}
+                                onClick={() => handleSelectBackgroundPreset(preset.value)}
+                                title={preset.name}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="customGradient">Custom Gradient</Label>
+                          <Input
+                            id="customGradient"
+                            value={backgroundColor}
+                            onChange={(e) => setBackgroundColor(e.target.value)}
+                            placeholder="linear-gradient(90deg, #ff9a9e 0%, #fad0c4 100%)"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    
+                    {backgroundType === "image" && (
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="backgroundImage">Background Image URL</Label>
+                          <Input
+                            id="backgroundImage"
+                            value={backgroundImage}
+                            onChange={(e) => setBackgroundImage(e.target.value)}
+                            placeholder="https://example.com/background.jpg"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label>Upload Image</Label>
+                          <div className="flex items-center gap-2">
+                            <Input 
+                              type="file" 
+                              accept="image/*" 
+                              onChange={handleFileUpload}
+                              className="flex-1"
+                            />
+                            <Button variant="outline" size="icon">
+                              <Upload size={16} />
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
+                          <Switch 
+                            id="backgroundBlur" 
+                            checked={backgroundBlur}
+                            onCheckedChange={setBackgroundBlur}
+                          />
+                          <Label htmlFor="backgroundBlur">Apply Blur Effect</Label>
+                        </div>
+                        
+                        {backgroundImage && (
+                          <div className="mt-2 rounded-md overflow-hidden border h-32">
+                            <img 
+                              src={backgroundImage} 
+                              alt="Background Preview" 
+                              className={`h-full w-full object-cover ${backgroundBlur ? 'blur-sm' : ''}`}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = "/placeholder.svg";
+                                toast.error("Failed to load image");
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    <div className="pt-4 border-t">
+                      <div className="space-y-2">
+                        <Label htmlFor="accentColor">Accent Color</Label>
+                        <div className="flex items-center">
+                          <Input
+                            id="accentColor"
+                            value={accentColor}
+                            onChange={(e) => setAccentColor(e.target.value)}
+                            className="flex-1"
+                          />
+                          <input
+                            type="color"
+                            value={accentColor}
+                            onChange={(e) => setAccentColor(e.target.value)}
+                            className="ml-2 h-10 w-10 rounded border cursor-pointer"
+                          />
+                        </div>
                       </div>
                     </div>
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="containerStyle">Container Style</Label>
-                      <Select 
-                        value={containerStyle} 
-                        onValueChange={(value) => setContainerStyle(value as any)}
-                      >
-                        <SelectTrigger id="containerStyle">
-                          <SelectValue placeholder="Select a style" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="default">Default</SelectItem>
-                          <SelectItem value="rounded">Rounded</SelectItem>
-                          <SelectItem value="pill">Pill</SelectItem>
-                          <SelectItem value="outline">Outline</SelectItem>
-                        </SelectContent>
-                      </Select>
+                    <div className="pt-4 border-t">
+                      <Label>Container Style</Label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
+                        {containerStyles.map(style => (
+                          <div 
+                            key={style.id}
+                            className={`cursor-pointer p-4 flex flex-col items-center ${containerStyle === style.id ? 'ring-2 ring-primary' : 'border'} rounded-md`}
+                            onClick={() => setContainerStyle(style.id as any)}
+                          >
+                            <div className={`w-full mb-2 h-8 ${style.preview}`}></div>
+                            <span className="text-sm">{style.name}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -422,10 +625,12 @@ const LinkBio: React.FC = () => {
                 profileName={profileName}
                 profileImage={profileImage}
                 profileBio={profileBio}
-                links={links}
-                backgroundColor={backgroundColor}
+                links={links.filter(link => link.active !== false)}
+                backgroundColor={backgroundType === "image" ? backgroundImage : backgroundColor}
                 accentColor={accentColor}
                 containerStyle={containerStyle}
+                backgroundType={backgroundType}
+                backgroundBlur={backgroundBlur}
               />
             </div>
           </div>
@@ -469,6 +674,44 @@ const LinkBio: React.FC = () => {
             </Button>
             <Button onClick={handleSaveLink}>
               {editingLink ? "Save Changes" : "Add Link"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Custom Domain Modal */}
+      <Dialog open={customDomainModalOpen} onOpenChange={setCustomDomainModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Custom Domain</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="customBaseUrl">Base URL</Label>
+              <Input
+                id="customBaseUrl"
+                value={customBaseUrl}
+                onChange={(e) => setCustomBaseUrl(e.target.value)}
+                placeholder="https://yourwebsite.com"
+              />
+              <p className="text-xs text-muted-foreground">
+                Your short links will use this base URL.
+              </p>
+            </div>
+            
+            <div className="pt-2 border-t">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="text-green-500 h-5 w-5" />
+                <p className="text-sm">Your current short link: <span className="font-medium">{customBaseUrl}/{user?.id}</span></p>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCustomDomainModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveCustomDomain}>
+              Save Changes
             </Button>
           </DialogFooter>
         </DialogContent>

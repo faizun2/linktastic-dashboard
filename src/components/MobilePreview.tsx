@@ -1,12 +1,14 @@
 
 import React, { useRef, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 
 export interface BioLink {
   id: string;
   title: string;
   url: string;
   icon?: string;
+  active?: boolean;
 }
 
 export interface PreviewProps {
@@ -17,6 +19,8 @@ export interface PreviewProps {
   backgroundColor: string;
   containerStyle: "default" | "rounded" | "pill" | "outline";
   accentColor: string;
+  backgroundType?: "color" | "gradient" | "image";
+  backgroundBlur?: boolean;
 }
 
 const MobilePreview: React.FC<PreviewProps> = ({
@@ -27,6 +31,8 @@ const MobilePreview: React.FC<PreviewProps> = ({
   backgroundColor,
   containerStyle,
   accentColor,
+  backgroundType = "color",
+  backgroundBlur = false,
 }) => {
   const previewRef = useRef<HTMLDivElement>(null);
 
@@ -44,22 +50,29 @@ const MobilePreview: React.FC<PreviewProps> = ({
     }
   };
 
-  // Set background color for the preview
+  // Set background for the preview
   useEffect(() => {
     if (previewRef.current) {
-      previewRef.current.style.backgroundColor = backgroundColor;
+      if (backgroundType === "image") {
+        previewRef.current.style.backgroundImage = `url(${backgroundColor})`;
+        previewRef.current.style.backgroundSize = "cover";
+        previewRef.current.style.backgroundPosition = "center";
+        previewRef.current.style.backgroundColor = "transparent";
+      } else {
+        previewRef.current.style.backgroundImage = "none";
+        previewRef.current.style.backgroundColor = backgroundColor;
+      }
     }
-  }, [backgroundColor]);
+  }, [backgroundColor, backgroundType]);
 
   // Get container class based on selected style
   const containerClass = getContainerStyles(containerStyle);
 
   return (
-    <div className="phone-frame w-[320px] h-[580px] mx-auto">
+    <div className="phone-frame w-[320px] h-[580px] mx-auto border-8 border-gray-800 rounded-[36px] shadow-xl overflow-hidden">
       <div 
         ref={previewRef}
-        className="w-full h-full overflow-y-auto py-8 px-6"
-        style={{ backgroundColor }}
+        className={`w-full h-full overflow-y-auto py-8 px-6 ${backgroundBlur && backgroundType === "image" ? 'backdrop-blur-md' : ''}`}
       >
         <div className="flex flex-col items-center">
           {/* Using a wrapper div with borderColor instead of directly styling the Avatar */}
@@ -96,7 +109,7 @@ const MobilePreview: React.FC<PreviewProps> = ({
           </div>
           
           <div className="mt-8 text-xs opacity-60 text-center">
-            Powered by LinkCraft
+            Powered by Mas Faiz
           </div>
         </div>
       </div>

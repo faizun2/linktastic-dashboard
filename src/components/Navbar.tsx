@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Settings } from "lucide-react";
 
 const Navbar: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -55,6 +55,14 @@ const Navbar: React.FC = () => {
             >
               Link Bio
             </Link>
+            <Link
+              to="/settings"
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                location.pathname === "/settings" ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              Settings
+            </Link>
           </div>
         </div>
 
@@ -86,6 +94,9 @@ const Navbar: React.FC = () => {
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/link-bio")}>
                   Link Bio
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/settings")}>
+                  Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
@@ -130,6 +141,13 @@ const Navbar: React.FC = () => {
               onClick={closeMobileMenu}
             >
               Link Bio
+            </Link>
+            <Link
+              to="/settings"
+              className="px-2 py-1 rounded-md hover:bg-accent hover:text-accent-foreground"
+              onClick={closeMobileMenu}
+            >
+              Settings
             </Link>
             <div className="h-px bg-border" />
             {isAuthenticated ? (
