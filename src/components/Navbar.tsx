@@ -26,16 +26,16 @@ const Navbar: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    navigate("/");
+    navigate("/login");
   };
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-6 md:gap-8">
-          <Link to="/" className="font-bold text-xl flex items-center">
-            <span className="text-primary">Link</span>
-            <span>Craft</span>
+          <Link to="/dashboard" className="font-bold text-xl flex items-center">
+            <span className="text-primary">Mas</span>
+            <span> Faiz</span>
           </Link>
 
           <div className="hidden md:flex gap-6">
@@ -95,11 +95,8 @@ const Navbar: React.FC = () => {
             </DropdownMenu>
           ) : (
             <>
-              <Button variant="ghost" onClick={() => navigate("/login")}>
-                Log In
-              </Button>
               <Button onClick={() => navigate("/login")}>
-                Sign Up
+                Log In
               </Button>
             </>
           )}
@@ -155,11 +152,8 @@ const Navbar: React.FC = () => {
               </>
             ) : (
               <>
-                <Button variant="ghost" onClick={() => navigate("/login")} className="justify-start">
-                  Log In
-                </Button>
                 <Button onClick={() => navigate("/login")} className="justify-start">
-                  Sign Up
+                  Log In
                 </Button>
               </>
             )}
